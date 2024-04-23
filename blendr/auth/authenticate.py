@@ -18,7 +18,7 @@ def login():
 
     # Open browser for user login and confirmation
     print("Opening browser for user login and confirmation...")
-    print(f'{CLIENT_URL}/verify?sessionId={session_id}')
+    print(f'URL: {CLIENT_URL}/verify?sessionId={session_id}')
     webbrowser.open(f'{CLIENT_URL}/verify?sessionId={session_id}')
 
     # Poll the server for the CLI token
@@ -26,7 +26,10 @@ def login():
         token_response = requests.post(f'{SERVER_URL}/check/session-id/{session_id}')
         if token_response.status_code == 200:
             token = token_response.json().get('token')
+            publicAddress = token_response.json().get('publicAddress')
             keyring.set_password("system", "blendr_jwt_token",token)
+            print(f"Login successful. Public Address: {publicAddress}")
+
             break
         time.sleep(5)  # Wait before polling again
 

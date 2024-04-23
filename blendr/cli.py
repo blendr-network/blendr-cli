@@ -1,6 +1,8 @@
 import click
 from blendr.auth import authenticate
 from blendr.task_manager import listen 
+from blendr.gpu_manager import detect
+from blendr.config import setup
 from colorama import Fore, Style, init
 
 # Initialize colorama
@@ -47,12 +49,12 @@ def login():
 @cli.command()
 def initalsetup():
     """initial setup"""
-    listen.listen()
+    setup.setup_initial_config()
 
 @cli.command()
 def checkgpu():
     """check for cpus"""
-    listen.listen()
+    detect.detech_gpus()
 
 @cli.command()
 def listentask():

@@ -5,8 +5,10 @@ import keyring
 
 
 def listen():
-    """Listen to Server Tasks"""
-    token = keyring.get_password("system", "blendr_jwt_token")
-    print(token)
+  """Listen to Server Tasks"""
+  token = keyring.get_password("system", "blendr_jwt_token")
+  print("Listening for task updates...")
+  while True:
 
+    pass
 
