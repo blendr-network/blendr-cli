@@ -73,7 +73,8 @@ Clone the repository:
 ```bash
 git clone https://github.com/yourusername/blendr-cli.git
 cd blendr-cli
-```Install dependencies:
+```
+Install dependencies:
 
 
 ```bash
