@@ -19,36 +19,8 @@ What things you need to install the software and how to install them:
 
 ```bash
 python3 -m pip install --upgrade pip
-
-
-
-
-Certainly! Below is a template for a README.md file for your blendr-cli project. You can customize this template further to suit the specifics of your project, provide more detailed descriptions, and add any additional sections that might be relevant.
-
-markdown
-
-# Blendr CLI
-
-Blendr CLI is a command-line interface designed to help users lend their GPU resources for computational tasks on the Blendr platform. This tool allows for easy setup, management, and monitoring of GPU resources from your terminal.
-
-## Features
-
-- **User Authentication**: Secure login to access the Blendr platform.
-- **GPU Detection**: Automatically detect and list available GPUs on the host machine.
-- **Task Management**: Listen and respond to computational tasks distributed via the Blendr network.
-- **Initial Setup**: Configure the CLI tool to optimize performance and resource usage.
-
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
-
-### Prerequisites
-
-What things you need to install the software and how to install them:
-
-```bash
-python3 -m pip install --upgrade pip
 ```
+
 
 ### Installing
 A step-by-step series of examples that tell you how to get a development environment running:
