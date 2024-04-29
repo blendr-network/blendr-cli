@@ -33,9 +33,6 @@ The Blender CLI is a command-line interface that connects users with the Blendr 
 @cli.command()
 def info():
     """Log in to the system using credentials."""
-    print(
-        'starting blendr cli...'
-    )
     click.echo(Fore.BLUE + Style.BRIGHT + BLENDR_ASCII_ART + Style.RESET_ALL)
     click.echo(Fore.YELLOW + "Welcome to Blendr!")
     click.echo(Fore.CYAN+"The Blender CLI is a command-line interface that connects users with the Blendr platform.")
@@ -63,6 +60,8 @@ def listentask():
 
 
 
-
-if __name__ == '__main__':
+def main():
     cli()
+
+if __name__ == "__main__":
+    main()

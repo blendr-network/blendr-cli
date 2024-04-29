@@ -1,5 +1,3 @@
-import requests
-from blendr.config.settings import SERVER_URL, CLIENT_URL
 import GPUtil
 
 

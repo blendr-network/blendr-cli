@@ -23,3 +23,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+
+node-config.json
+tmp

@@ -8,12 +8,12 @@ import keyring
 
 def login():
     """Handles user login with server validation."""
-    # print("Please enter your credentials.")
-    # username = input("Username: ")
-    # password = input("Password: ")
-
+    
       # Request session ID from server
-    response = requests.post(f'{SERVER_URL}/generate/session-id', json={'deviceID': 'macOS'})
+    print(f'{SERVER_URL}/api/generate/session-id')
+    response = requests.post(f'{SERVER_URL}/api/generate/session-id', json={'deviceID': 'macOS'})
+    print(response)
+    print(response.json())
     session_id = response.json().get('sessionId')
 
     # Open browser for user login and confirmation
@@ -23,7 +23,7 @@ def login():
 
     # Poll the server for the CLI token
     while True:
-        token_response = requests.post(f'{SERVER_URL}/check/session-id/{session_id}')
+        token_response = requests.post(f'{SERVER_URL}/api/check/session-id/{session_id}')
         if token_response.status_code == 200:
             token = token_response.json().get('token')
             publicAddress = token_response.json().get('publicAddress')
