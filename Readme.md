@@ -26,7 +26,7 @@ python3 -m pip install --upgrade pip
 Certainly! Below is a template for a README.md file for your blendr-cli project. You can customize this template further to suit the specifics of your project, provide more detailed descriptions, and add any additional sections that might be relevant.
 
 markdown
-Copy code
+
 # Blendr CLI
 
 Blendr CLI is a command-line interface designed to help users lend their GPU resources for computational tasks on the Blendr platform. This tool allows for easy setup, management, and monitoring of GPU resources from your terminal.
@@ -48,66 +48,83 @@ What things you need to install the software and how to install them:
 
 ```bash
 python3 -m pip install --upgrade pip
-Installing
+```
+
+### Installing
 A step-by-step series of examples that tell you how to get a development environment running:
 
+
 Install the package using pip:
-bash
-Copy code
+
+```bash
 pip install blendr
+```
+
 Verify the installation:
-bash
-Copy code
+
+```bash
 blendr --help
+```
 If the installation was successful, you should see the help message for the blendr command.
 
-Usage
+
+## Usage
 Below are some examples of how to use the CLI:
 
 Log in to Blendr:
-bash
-Copy code
+```bash
 blendr login
+```
 Perform initial setup:
-bash
-Copy code
+
+```bash
 blendr initalsetup
+```
+
 Check available GPUs:
-bash
-Copy code
+
+
+```bash
 blendr checkgpu
+```
+
 Listen for tasks:
-bash
-Copy code
+```bash
 blendr listentask
-Development
+```
+
+## Development
 For those looking to contribute or simply tinker with the CLI tool, here's how to get started with development.
 
 Clone the repository:
-bash
-Copy code
+
+```bash
 git clone https://github.com/yourusername/blendr-cli.git
 cd blendr-cli
-Install dependencies:
-bash
-Copy code
+```Install dependencies:
+
+
+```bash
 pip install -r requirements.txt
+```
 Run the tool:
-bash
-Copy code
+
+
+```bash
 python -m blendr.cli
-Contributing
+```
+## Contributing
 Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
 
-License
+## License
 This project is licensed under the MIT License - see the LICENSE.md file for details.
 
-Acknowledgments
+## Acknowledgments
 Hat tip to anyone whose code was used
 Inspiration
 etc
 vbnet
-Copy code
+
 
 ### Notes:
 - **Customize**: Replace placeholders like URLs and usernames with actual values relevant to your project.
