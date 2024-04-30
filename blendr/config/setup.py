@@ -11,13 +11,12 @@ def setup_initial_config():
     node_name = select_nodename()
     disk_space = allocate_space()
     ram_info = allocate_ram()
-    gpu = select_gpu()
+    gpu_info = select_gpu()
     storage_path = input("Enter the storage path: ")
     cpu_info = get_cpu_info()
     network_speeds = check_network_speed()
 
-    save_preferences(node_name, disk_space, ram_info, gpu, storage_path, cpu_info, network_speeds)
-
+    save_preferences(node_name, disk_space, ram_info, gpu_info, storage_path, cpu_info, network_speeds)
 
 
 
@@ -35,17 +34,25 @@ def select_gpu():
     if not gpus:
         print("No GPUs available.")
         return None
+
     print("Available GPUs:")
     for i, gpu in enumerate(gpus):
-        print(f"{i}: {gpu.name} (ID: {gpu.id})")
+        print(f"{i}: {gpu.name} (ID: {gpu.id}) - Memory Total: {gpu.memoryTotal:.2f} MB")
 
     while True:
         choice = input("Enter the number of the GPU you wish to rent: ")
         if choice.isdigit() and int(choice) < len(gpus):
-            print(f"GPU {gpus[int(choice)].name} selected.")
-            return gpus[int(choice)]
+            selected_gpu = gpus[int(choice)]
+            gpu_info = {
+                "name": selected_gpu.name,
+                "id": selected_gpu.id,
+                "total_memory_mb": selected_gpu.memoryTotal,
+            }
+            print(f"GPU {selected_gpu.name} selected.")
+            return gpu_info
         else:
             print("Invalid selection. Please enter a valid number.")
+            
 
 
 def get_cpu_info():
@@ -96,13 +103,12 @@ def allocate_space():
     free_space_mb = check_disk_space() / (2**20)  # Convert free space to MB for comparison
     while True:
         try:
-            allocation_gib = float(input("Enter the amount of space to allocate (in GiB): "))
-            allocation_mb = allocation_gib * 1024  # Convert GiB to MB
+            allocation_mb = float(input("Enter the amount of space to allocate (in MB): "))
             if allocation_mb > free_space_mb:
                 print("Error: Not enough free space. Please enter a smaller amount.")
             else:
                 print(f"{allocation_mb} MB allocated successfully.")
-                return allocation_mb  # Return the allocation in MB
+                return allocation_mb  # Return the allocation directly in MB
         except ValueError:
             print("Invalid input. Please enter a numeric value.")
 
@@ -111,25 +117,24 @@ def allocate_ram():
     print(f"Total RAM available: {total_ram_mb:.2f} MB")
     while True:
         try:
-            ram_allocation_gib = float(input("Enter the amount of RAM to allocate (in GiB): "))
-            ram_allocation_mb = ram_allocation_gib * 1024  # Convert GiB to MB
+            ram_allocation_mb = float(input("Enter the amount of RAM to allocate (in MB): "))
             if ram_allocation_mb > total_ram_mb:
                 print("Error: Not enough RAM. Please enter a smaller amount.")
             else:
                 print(f"{ram_allocation_mb} MB of RAM allocated successfully.")
-                return ram_allocation_mb  # Return the allocation in MB
+                return ram_allocation_mb  # Return the allocation directly in MB
         except ValueError:
             print("Invalid input. Please enter a numeric value.")
+
                       
 
-def save_preferences(node_name, disk_space_mb, ram_info_mb, gpu, storage_path, cpu_info, network_speeds):
+def save_preferences(node_name, disk_space_mb, ram_info_mb, gpu_info, storage_path, cpu_info, network_speeds):
     try:
         config = {
             'node_name': node_name,
             'disk_space_mb': disk_space_mb,  # Save disk space in MB
             'ram_mb': ram_info_mb,  # Save RAM in MB
-            'gpu_id': gpu.id if gpu else None,
-            'gpu_name': gpu.name if gpu else None,
+            'gpu_info': gpu_info if gpu_info else None,
             'storage_path': storage_path,
             'cpu_info': cpu_info,
             'network_speeds': network_speeds
@@ -141,26 +146,6 @@ def save_preferences(node_name, disk_space_mb, ram_info_mb, gpu, storage_path, c
         print(f"Failed to save configuration: {str(e)}")
 
 
-def convert_gib_to_mb():
-    try:
-        with open('node-config.json', 'r') as f:
-            config = json.load(f)
-        
-        # Convert GiB to MB
-        config['disk_space_mb'] = config.pop('disk_space_gib', 0) * 1024
-        config['ram_mb'] = config.pop('ram_gib', 0) * 1024
-
-        with open('node-config.json', 'w') as f:
-            json.dump(config, f)
-        print("Configuration successfully updated to MB.")
-    except FileNotFoundError:
-        print("Configuration file not found.")
-    except json.JSONDecodeError:
-        print("Error decoding the configuration file.")
-    except Exception as e:
-        print(f"General error when updating configuration: {str(e)}")
-        
-    
 
 def load_config():
     """Load the configuration from a JSON file."""
