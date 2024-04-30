@@ -6,12 +6,15 @@ def read(fname):
 
 setup(
     name='blendr-cli',
-    version='0.1.0',
+    version='0.1.4',
     packages=find_packages(),
     install_requires=[
         'click',      
         'requests',  
-        'colorama'    
+        'colorama',
+        'GPUtil',
+        'psutil',
+        'keyring'
     ],
     entry_points={
         'console_scripts': [

@@ -1,5 +1,6 @@
 # Ignore virtual environment
 env/
+myenv/
 
 # Other common Python ignores
 __pycache__/
@@ -27,3 +28,4 @@ MANIFEST
 
 node-config.json
 tmp
+
