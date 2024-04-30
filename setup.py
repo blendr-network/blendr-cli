@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name='blendr-cli',
-    version='0.1.4',
+    version='0.1.2',
     packages=find_packages(),
     install_requires=[
         'click',      
@@ -14,7 +14,9 @@ setup(
         'colorama',
         'GPUtil',
         'psutil',
-        'keyring'
+        'keyring',
+        'speedtest-cli',
+        'py-cpuinfo'
     ],
     entry_points={
         'console_scripts': [

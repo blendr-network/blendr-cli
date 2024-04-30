@@ -3,17 +3,20 @@ import json
 import shutil
 import GPUtil
 import psutil
-
+from speedtest import Speedtest
+import cpuinfo
 
 def setup_initial_config():
     print("Welcome to the Initial Setup for Blendr GPU Lending")
     node_name = select_nodename()
     disk_space = allocate_space()
-    ram_info= allocate_ram()
+    ram_info = allocate_ram()
     gpu = select_gpu()
     storage_path = input("Enter the storage path: ")
-    
-    save_preferences(node_name,disk_space,ram_info,gpu,storage_path)
+    cpu_info = get_cpu_info()
+    network_speeds = check_network_speed()
+
+    save_preferences(node_name, disk_space, ram_info, gpu, storage_path, cpu_info, network_speeds)
 
 
 
@@ -45,20 +48,41 @@ def select_gpu():
             print("Invalid selection. Please enter a valid number.")
 
 
+def get_cpu_info():
+    try:
+        print("Getting CPU information...")
+        info = cpuinfo.get_cpu_info()  # Get all CPU information
+        print(f"Model: {info['brand_raw']}")
+        return {
+            "model": info['brand_raw'],  # CPU model name
+            "physical_cores": psutil.cpu_count(logical=False),
+            "total_cores": psutil.cpu_count(logical=True),
+            "max_frequency": info.get('hz_advertised_friendly', "N/A"),  # Advertised frequency
+            "current_frequency": psutil.cpu_freq().current if psutil.cpu_freq() else "N/A"
+        }
+    except Exception as e:
+        print(f"Failed to retrieve CPU information: {str(e)}")
+        return {}
 
-def allocate_space():
-    free_space = check_disk_space()
-    while True:
-        try:
-            allocation = float(input("Enter the amount of space to allocate (in GiB): "))
-            if allocation * (2**30) > free_space:
-                print("Error: Not enough free space. Please enter a smaller amount.")
-            else:
-                print(f"{allocation} GiB allocated successfully.")
-                return allocation
-        except ValueError:
-            print("Invalid input. Please enter a numeric value.")
-            
+    
+
+def check_network_speed():
+    try:
+        print("Checking network speed...")
+        st = Speedtest()
+        st.get_best_server()
+        download_speed = st.download() / (10**6)  # Convert to Mbps
+        upload_speed = st.upload() / (10**6)  # Convert to Mbps
+        return {
+            "download_speed_mbps": download_speed,
+            "upload_speed_mbps": upload_speed
+        }
+    except Exception as e:
+        print(f"Failed to check network speeds: {str(e)}")
+        return {
+             "download_speed_mbps": 0,
+            "upload_speed_mbps": 0
+        }
 
 def check_disk_space():
     total, used, free = shutil.disk_usage("/")
@@ -68,36 +92,52 @@ def check_disk_space():
     return free
 
 
-def allocate_ram():
-    total_ram = psutil.virtual_memory().total / (2**30)  # Convert bytes to GiB
-    print(f"Total RAM available: {total_ram:.2f} GiB")
+def allocate_space():
+    free_space = check_disk_space()  # This will still retrieve the space in bytes
     while True:
         try:
-            ram_allocation = float(input("Enter the amount of RAM to allocate (in GiB): "))
-            if ram_allocation > total_ram:
-                print("Error: Not enough RAM. Please enter a smaller amount.")
+            allocation = float(input("Enter the amount of space to allocate (in MB): "))
+            allocation_bytes = allocation * (2**20)  # Convert MB to bytes
+            if allocation_bytes > free_space:
+                print("Error: Not enough free space. Please enter a smaller amount.")
             else:
-                print(f"{ram_allocation} GiB of RAM allocated successfully.")
-                return ram_allocation
+                print(f"{allocation} MB allocated successfully.")
+                return allocation  # Return the allocation in MB
         except ValueError:
             print("Invalid input. Please enter a numeric value.")
 
+def allocate_ram():
+    total_ram = psutil.virtual_memory().total / (2**20)  # Convert bytes to MB
+    print(f"Total RAM available: {total_ram:.2f} MB")
+    while True:
+        try:
+            ram_allocation = float(input("Enter the amount of RAM to allocate (in MB): "))
+            if ram_allocation > total_ram:
+                print("Error: Not enough RAM. Please enter a smaller amount.")
+            else:
+                print(f"{ram_allocation} MB of RAM allocated successfully.")
+                return ram_allocation  # Return the allocation in MB
+        except ValueError:
+            print("Invalid input. Please enter a numeric value.")
+            
 
-
-def save_preferences(node_name, disk_space, ram_info, gpu, storage_path):
-    config = {
-        'node_name': node_name,
-        'disk_space_gib': disk_space,
-        'ram_gib': ram_info,
-        'gpu_id': gpu.id if gpu else None,
-        'gpuType': 'Nvidia 3080Ti',
-        'storage_path': storage_path,
-        'cpu': "Intel Core i7-8700K",
-    }
-    with open('node-config.json', 'w') as f:
-        json.dump(config, f)
-    print("Configuration saved.")
-    
+def save_preferences(node_name, disk_space, ram_info, gpu, storage_path, cpu_info, network_speeds):
+    try:
+        config = {
+            'node_name': node_name,
+            'disk_space_gib': disk_space,
+            'ram_gib': ram_info,
+            'gpu_id': gpu.id if gpu else None,
+            'gpu_name': gpu.name if gpu else None,
+            'storage_path': storage_path,
+            'cpu_info': cpu_info,
+            'network_speeds': network_speeds
+        }
+        with open('node-config.json', 'w') as f:
+            json.dump(config, f)
+        print("Configuration saved.")
+    except Exception as e:
+        print(f"Failed to save configuration: {str(e)}")
     
 
 def load_config():
@@ -112,3 +152,5 @@ def load_config():
     except json.JSONDecodeError:
         print("Error decoding the configuration file.")
         return {}
+    
+    

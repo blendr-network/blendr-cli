@@ -15,7 +15,7 @@ __________.__                     .___
  |    |  _/  | _/ __ \ /    \  / __ |\_  __ \
  |    |   \  |_\  ___/|   |  \/ /_/ | |  | \/
  |______  /____/\___  >___|  /\____ | |__|   
-        \/          \/     \/      \/        ƒ
+        \/          \/     \/      \/      
 """
 
 
@@ -26,13 +26,15 @@ def cli():
 ======================
 BLENDR CLI
 ======================
-The Blender CLI is a command-line interface that connects users with the Blendr platform. It allows users to lend their GPU for computational tasks. By running the CLI, users can log in to the system, perform initial setup, check for available GPUs, and listen for incoming tasks. The CLI provides a convenient way for users to interact with the Blendr platform and contribute their GPU resources.
+The Blender CLI is a command-line interface that connects users with the Blendr platform. It allows users to lend their GPU for computational tasks.
+By running the CLI, users can log in to the system, perform initial setup, check for available GPUs,  nd listen for incoming tasks. 
+The CLI provides a convenient way for users to interact with the Blendr platform and contribute their GPU resources.
     """
     pass
 
 @cli.command()
 def info():
-    """Log in to the system using credentials."""
+    """Blendr Info."""
     click.echo(Fore.BLUE + Style.BRIGHT + BLENDR_ASCII_ART + Style.RESET_ALL)
     click.echo(Fore.YELLOW + "Welcome to Blendr!")
     click.echo(Fore.CYAN+"The Blender CLI is a command-line interface that connects users with the Blendr platform.")
@@ -61,6 +63,7 @@ def listentask():
 
 
 def main():
+    click.echo(Fore.BLUE + Style.BRIGHT + BLENDR_ASCII_ART + Style.RESET_ALL)  
     cli()
 
 if __name__ == "__main__":

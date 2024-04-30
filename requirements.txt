@@ -5,3 +5,5 @@ GPUtil
 python-socketio[client]
 psutil
 keyring
+speedtest-cli
+py-cpuinfo

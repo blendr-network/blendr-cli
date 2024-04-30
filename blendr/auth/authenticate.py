@@ -10,10 +10,7 @@ def login():
     """Handles user login with server validation."""
     
       # Request session ID from server
-    print(f'{SERVER_URL}/api/generate/session-id')
     response = requests.post(f'{SERVER_URL}/api/generate/session-id', json={'deviceID': 'macOS'})
-    print(response)
-    print(response.json())
     session_id = response.json().get('sessionId')
 
     # Open browser for user login and confirmation
