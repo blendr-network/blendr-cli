@@ -5,18 +5,19 @@ import GPUtil
 import psutil
 from speedtest import Speedtest
 import cpuinfo
+import os
+import platform
+import subprocess
 
 def setup_initial_config():
     print("Welcome to the Initial Setup for Blendr GPU Lending")
     node_name = select_nodename()
-    disk_space = allocate_space()
-    ram_info = allocate_ram()
+    storage_info = get_storage_info()
     gpu_info = select_gpu()
-    storage_path = input("Enter the storage path: ")
     cpu_info = get_cpu_info()
-    network_speeds = check_network_speed()
+    network_info = check_network_speed()
 
-    save_preferences(node_name, disk_space, ram_info, gpu_info, storage_path, cpu_info, network_speeds)
+    save_preferences(node_name, storage_info, gpu_info, cpu_info, network_info)
 
 
 
@@ -90,54 +91,96 @@ def check_network_speed():
              "download_speed_mbps": 0,
             "upload_speed_mbps": 0
         }
+        
+        
 
-def check_disk_space():
-    total, used, free = shutil.disk_usage("/")
+
+#    ==========================
+#   Getting Storage Information
+#   ===========================
+
+def check_disk_space(path):
+    total, used, free = shutil.disk_usage(path)
     print(f"Total: {total // (2**30)} GiB")
     print(f"Used: {used // (2**30)} GiB")
     print(f"Free: {free // (2**30)} GiB")
-    return free
+    return total, used, free
 
+def get_storage_type_linux(path):
+    # Assumes path is something like /dev/sda
+    command = f"lsblk -no NAME,TYPE {path} | grep disk"
+    result = subprocess.run(command, shell=True, text=True, capture_output=True)
+    output = result.stdout.strip()
+    if 'ssd' in output:
+        return "SSD"
+    else:
+        return "HDD"
 
-def allocate_space():
-    free_space_mb = check_disk_space() / (2**20)  # Convert free space to MB for comparison
+def get_storage_type_windows(path):
+    # Path is typically a drive letter like C:
+    drive = path[0]  # Extract the drive letter
+    command = f"Get-PhysicalDisk | Where-Object {{$_.DeviceID -eq (Get-Partition -DriveLetter {drive}).DiskNumber}} | Select MediaType"
+    result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True)
+    output = result.stdout.strip()
+    if "SSD" in output:
+        return "SSD"
+    else:
+        return "HDD"
+    
+def get_storage_type(path):
+    os_type = platform.system()
+    if os_type == "Windows":
+        return get_storage_type_windows(path)
+    elif os_type == "Linux":
+        return get_storage_type_linux(path)
+    else:
+        print(f"Unsupported operating system: {os_type}")
+        return "Unknown"
+    
+
+def get_storage_info():
+    while True:
+        storage_path = input("Enter the storage path where you'd like to allocate space: ")
+        if os.path.isdir(storage_path) and os.access(storage_path, os.W_OK):
+            total, used, free = check_disk_space(storage_path)
+            break
+        else:
+            print("Invalid path or path is not writable. Please enter a valid writable path.")
+    
     while True:
         try:
             allocation_mb = float(input("Enter the amount of space to allocate (in MB): "))
-            if allocation_mb > free_space_mb:
+            if allocation_mb > free / (2**20):  # Convert bytes to MB for comparison
                 print("Error: Not enough free space. Please enter a smaller amount.")
             else:
-                print(f"{allocation_mb} MB allocated successfully.")
-                return allocation_mb  # Return the allocation directly in MB
+                print(f"{allocation_mb} MB allocated successfully at {storage_path}.")
+                break
         except ValueError:
             print("Invalid input. Please enter a numeric value.")
+    
+    storage_type = get_storage_type(storage_path)
+    fstype = os.statvfs(storage_path).f_fstypename if hasattr(os.statvfs(storage_path), 'f_fstypename') else "Unknown"  # This might not work on all platforms
 
-def allocate_ram():
-    total_ram_mb = psutil.virtual_memory().total / (2**20)  # Convert total RAM from bytes to MB
-    print(f"Total RAM available: {total_ram_mb:.2f} MB")
-    while True:
-        try:
-            ram_allocation_mb = float(input("Enter the amount of RAM to allocate (in MB): "))
-            if ram_allocation_mb > total_ram_mb:
-                print("Error: Not enough RAM. Please enter a smaller amount.")
-            else:
-                print(f"{ram_allocation_mb} MB of RAM allocated successfully.")
-                return ram_allocation_mb  # Return the allocation directly in MB
-        except ValueError:
-            print("Invalid input. Please enter a numeric value.")
+    storage_info = {
+        "path": storage_path,
+        "total_gb": total / (2**30),
+        "allocated_mb": allocation_mb,
+        "storage_type": storage_type,
+        "fstype": fstype
+    }
+
+    return storage_info
 
                       
 
-def save_preferences(node_name, disk_space_mb, ram_info_mb, gpu_info, storage_path, cpu_info, network_speeds):
+def save_preferences(node_name,storage_info, gpu_info, cpu_info, network_info):
     try:
         config = {
             'node_name': node_name,
-            'disk_space_mb': disk_space_mb,  # Save disk space in MB
-            'ram_mb': ram_info_mb,  # Save RAM in MB
             'gpu_info': gpu_info if gpu_info else None,
-            'storage_path': storage_path,
+            'storage_info': storage_info,
             'cpu_info': cpu_info,
-            'network_speeds': network_speeds
+            'network_info': network_info
         }
         with open('node-config.json', 'w') as f:
             json.dump(config, f)
