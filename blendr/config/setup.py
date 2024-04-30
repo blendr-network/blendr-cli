@@ -5,7 +5,6 @@ import GPUtil
 import psutil
 from speedtest import Speedtest
 import cpuinfo
-import os
 import platform
 import subprocess
 
@@ -107,7 +106,6 @@ def check_disk_space(path):
     return total, used, free
 
 def get_storage_type_linux(path):
-    # Assumes path is something like /dev/sda
     command = f"lsblk -no NAME,TYPE {path} | grep disk"
     result = subprocess.run(command, shell=True, text=True, capture_output=True)
     output = result.stdout.strip()
@@ -117,10 +115,9 @@ def get_storage_type_linux(path):
         return "HDD"
 
 def get_storage_type_windows(path):
-    # Path is typically a drive letter like C:
-    drive = path[0]  # Extract the drive letter
-    command = f"Get-PhysicalDisk | Where-Object {{$_.DeviceID -eq (Get-Partition -DriveLetter {drive}).DiskNumber}} | Select MediaType"
-    result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True)
+    drive = path[0]
+    command = f"wmic diskdrive where Index=0 get MediaType"
+    result = subprocess.run(command, shell=True, text=True, capture_output=True)
     output = result.stdout.strip()
     if "SSD" in output:
         return "SSD"
@@ -136,17 +133,16 @@ def get_storage_type(path):
     else:
         print(f"Unsupported operating system: {os_type}")
         return "Unknown"
-    
 
 def get_storage_info():
     while True:
         storage_path = input("Enter the storage path where you'd like to allocate space: ")
-        if os.path.isdir(storage_path) and os.access(storage_path, os.W_OK):
+        if shutil.disk_usage(storage_path):
             total, used, free = check_disk_space(storage_path)
             break
         else:
-            print("Invalid path or path is not writable. Please enter a valid writable path.")
-    
+            print("Invalid path. Please enter a valid path.")
+
     while True:
         try:
             allocation_mb = float(input("Enter the amount of space to allocate (in MB): "))
@@ -157,16 +153,14 @@ def get_storage_info():
                 break
         except ValueError:
             print("Invalid input. Please enter a numeric value.")
-    
+
     storage_type = get_storage_type(storage_path)
-    fstype = os.statvfs(storage_path).f_fstypename if hasattr(os.statvfs(storage_path), 'f_fstypename') else "Unknown"  # This might not work on all platforms
 
     storage_info = {
         "path": storage_path,
         "total_gb": total / (2**30),
         "allocated_mb": allocation_mb,
         "storage_type": storage_type,
-        "fstype": fstype
     }
 
     return storage_info
