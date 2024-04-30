@@ -93,40 +93,41 @@ def check_disk_space():
 
 
 def allocate_space():
-    free_space = check_disk_space()  # This will still retrieve the space in bytes
+    free_space_mb = check_disk_space() / (2**20)  # Convert free space to MB for comparison
     while True:
         try:
-            allocation = float(input("Enter the amount of space to allocate (in MB): "))
-            allocation_bytes = allocation * (2**20)  # Convert MB to bytes
-            if allocation_bytes > free_space:
+            allocation_gib = float(input("Enter the amount of space to allocate (in GiB): "))
+            allocation_mb = allocation_gib * 1024  # Convert GiB to MB
+            if allocation_mb > free_space_mb:
                 print("Error: Not enough free space. Please enter a smaller amount.")
             else:
-                print(f"{allocation} MB allocated successfully.")
-                return allocation  # Return the allocation in MB
+                print(f"{allocation_mb} MB allocated successfully.")
+                return allocation_mb  # Return the allocation in MB
         except ValueError:
             print("Invalid input. Please enter a numeric value.")
 
 def allocate_ram():
-    total_ram = psutil.virtual_memory().total / (2**20)  # Convert bytes to MB
-    print(f"Total RAM available: {total_ram:.2f} MB")
+    total_ram_mb = psutil.virtual_memory().total / (2**20)  # Convert total RAM from bytes to MB
+    print(f"Total RAM available: {total_ram_mb:.2f} MB")
     while True:
         try:
-            ram_allocation = float(input("Enter the amount of RAM to allocate (in MB): "))
-            if ram_allocation > total_ram:
+            ram_allocation_gib = float(input("Enter the amount of RAM to allocate (in GiB): "))
+            ram_allocation_mb = ram_allocation_gib * 1024  # Convert GiB to MB
+            if ram_allocation_mb > total_ram_mb:
                 print("Error: Not enough RAM. Please enter a smaller amount.")
             else:
-                print(f"{ram_allocation} MB of RAM allocated successfully.")
-                return ram_allocation  # Return the allocation in MB
+                print(f"{ram_allocation_mb} MB of RAM allocated successfully.")
+                return ram_allocation_mb  # Return the allocation in MB
         except ValueError:
             print("Invalid input. Please enter a numeric value.")
-            
+                      
 
-def save_preferences(node_name, disk_space, ram_info, gpu, storage_path, cpu_info, network_speeds):
+def save_preferences(node_name, disk_space_mb, ram_info_mb, gpu, storage_path, cpu_info, network_speeds):
     try:
         config = {
             'node_name': node_name,
-            'disk_space_gib': disk_space,
-            'ram_gib': ram_info,
+            'disk_space_mb': disk_space_mb,  # Save disk space in MB
+            'ram_mb': ram_info_mb,  # Save RAM in MB
             'gpu_id': gpu.id if gpu else None,
             'gpu_name': gpu.name if gpu else None,
             'storage_path': storage_path,
@@ -138,6 +139,27 @@ def save_preferences(node_name, disk_space, ram_info, gpu, storage_path, cpu_inf
         print("Configuration saved.")
     except Exception as e:
         print(f"Failed to save configuration: {str(e)}")
+
+
+def convert_gib_to_mb():
+    try:
+        with open('node-config.json', 'r') as f:
+            config = json.load(f)
+        
+        # Convert GiB to MB
+        config['disk_space_mb'] = config.pop('disk_space_gib', 0) * 1024
+        config['ram_mb'] = config.pop('ram_gib', 0) * 1024
+
+        with open('node-config.json', 'w') as f:
+            json.dump(config, f)
+        print("Configuration successfully updated to MB.")
+    except FileNotFoundError:
+        print("Configuration file not found.")
+    except json.JSONDecodeError:
+        print("Error decoding the configuration file.")
+    except Exception as e:
+        print(f"General error when updating configuration: {str(e)}")
+        
     
 
 def load_config():
