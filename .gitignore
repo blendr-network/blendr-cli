@@ -1,6 +1,7 @@
 # Ignore virtual environment
 env/
 myenv/
+testenv/
 
 # Other common Python ignores
 __pycache__/
