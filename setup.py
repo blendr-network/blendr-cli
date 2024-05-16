@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name='blendr-cli',
-    version='0.1.6',
+    version='0.1.7',
     packages=find_packages(),
     install_requires=[
         'click==8.1.7',
