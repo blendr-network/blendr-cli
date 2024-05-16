@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name='blendr-cli',
-    version='0.1.4',
+    version='0.1.6',
     packages=find_packages(),
     install_requires=[
         'click==8.1.7',
@@ -17,7 +17,9 @@ setup(
         'keyring==25.2.0',
         'speedtest-cli==2.1.3',
         'py-cpuinfo==9.0.0',
-        'python-socketio[client]==5.11.2'
+        'python-socketio[client]==5.11.2',
+        'datasets==2.19.1'
+
     ],
     entry_points={
         'console_scripts': [

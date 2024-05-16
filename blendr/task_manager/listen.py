@@ -1,27 +1,20 @@
 from blendr.config.settings import SERVER_URL
 from blendr.config.setup import load_config
 import keyring
-import socketio
-import requests
+from blendr.ai.tasks.fine_tune import fine_tune
+from blendr.initiate_socket.initiate import sio, connect_to_server
 
-
-
+    
 def listen():
     """Listen to Server Tasks"""
     token = keyring.get_password("system", "blendr_jwt_token")
-    # print("Listening for task updates...")
+    connect_to_server(SERVER_URL, token)
 
-     # Create a Socket.IO client
-    http_session = requests.Session()
-    http_session.verify = False
-    sio = socketio.Client(http_session=http_session)
-    
     @sio.event
     def connect():
         print("Connected to the server. Listening to Task..")
-        initialConfig = load_config()
-        # print(initialConfig)
-        sio.emit('initialconfig', initialConfig)
+        # initialConfig = load_config()
+        # sio.emit('initialconfig', initialConfig)
 
     @sio.event
     def connect_error(data):
@@ -36,60 +29,37 @@ def listen():
         print("I'm disconnected!")
     
   
-# Process the task completion data
-    
+# Process the task completion dat
 #  mainEmitter.to(socketID).emit("MAIN: UserConnect", payload);
 
 
     # # Define event handlers
-    # @sio.on('task_update')
-    # def handle_task_update(data):
-    #     print(f"Received task update: {data}")
-    #     time.sleep(2)
-    #     print("emiting..")
-    #     sio.emit('test', {'foo': 'bar'})
+    @sio.on('BMAIN: NEW_TASK')
+    def handle_new_task(data):
+        print(f"New task received: {data}")
+        # Based on the task type, decide the function to call
+        if data['taskType'] == 'FINE_TUNE':
+            try:
+                fine_tune(data)
+            except Exception as e:
+                print(f"An error occurred during task execution: {str(e)}")
 
-    #     # Process the task update data
-
- 
-        # Process the task completion data
+    # try:
+    #     sio.connect(SERVER_URL, headers={"Authorization": f"Bearer {token}"})
         
-    # @sio.on('task_completed')
-    # def handle_task_completed(data):
-    #     print(f"Task completed: {data}")
-    #     # Process the task completion data
-
-    # # Listen for the 'error' event
-    # @sio.event
-    # def error_handler(data):
-    #     print(data)
-    #     print(f"Error: {data['message']}")
-    #     sio.disconnect()
-
-    # # Listen for the 'disconnect' event
-    # @sio.event
-    # def disconnect_handler():
-    #     print("Disconnected from server")
-
-    try:
-        sio.connect(SERVER_URL, headers={"Authorization": f"Bearer {token}"})
-        
-    except socketio.exceptions.ConnectionError as e:
-        print(f"ConnectionError: {str(e)}")
-    except Exception as e:
-        print(f"Unexpected error: {str(e)}")
-        return
+    # except socketio.exceptions.ConnectionError as e:
+    #     print(f"ConnectionError: {str(e)}")
+    # except Exception as e:
+    #     print(f"Unexpected error: {str(e)}")
+    #     return
     
-
- 
-
 
 
     # Start the event loop
     sio.wait()
 
     # Clean up and disconnect
-    # sio.disconnect()
+    sio.disconnect()
 
 
 
