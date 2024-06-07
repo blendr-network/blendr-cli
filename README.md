@@ -71,7 +71,7 @@ For those looking to contribute or simply tinker with the CLI tool, here's how t
 Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/blendr-cli.git
+git clone https://github.com/blendr-network/blendr-cli.git
 cd blendr-cli
 ```
 Install dependencies:

@@ -1,15 +1,21 @@
 # from ai.data.data_loader import load_data, prepare_data
 # from ai.training.trainer import train
 import os
+import tarfile
+import requests
 from ai.data.cache import setup_local_cache
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer, TrainingArguments
 from datasets import load_dataset
 from blendr.initiate_socket.initiate import sio
+from blendr.config.settings import SERVER_URL
 
 
 def fine_tune(task_details):
     try:
         base_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'cache')
+        results_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'results')
+        save_dir = os.path.join(results_dir, 'saved_model')
+
         model_cache = setup_local_cache({
             'model': task_details['aiModel']['url'],
             'config': task_details['aiModel']['configUrl'],
@@ -67,11 +73,44 @@ def fine_tune(task_details):
         trainer.train()
         sio.emit('BMAIN: logs', {'taskId':task_details['id'], 'message': 'Training complete'})
 
-        # Save the model and the tokenizer
-        model.save_pretrained('./saved_model')
-        tokenizer.save_pretrained('./saved_model')
-        sio.emit('BMAIN: logs', {'taskId':task_details['id'], 'message': 'Model and tokenizer saved'})
+
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
+        model.save_pretrained(save_dir)
+        tokenizer.save_pretrained(save_dir)
+        sio.emit('BMAIN: logs', {'taskId': task_details['id'], 'message': 'Model and tokenizer saved'})
+
+        # Compress the saved model and tokenizer into a folder
+        compressed_file = results_dir + '.tar.gz'
+        with tarfile.open(compressed_file, 'w:gz') as tar:
+            tar.add(results_dir, arcname=os.path.basename(results_dir))
+
+        sio.emit('BMAIN: logs', {'taskId': task_details['id'], 'message': 'Model and tokenizer compressed'})
+
+        # Generate presigned URL
+        response = requests.post(SERVER_URL + '/api/generate/presigned-url', json={'fileType': 'tar.gz', 'fileName': os.path.basename(compressed_file)})
+        presigned_url = response.text
+        if not presigned_url:
+            raise Exception('Failed to get presigned URL')
+
+        # Upload the folder to S3 using the presigned URL
+        with open(compressed_file, 'rb') as f:
+            upload_response = requests.put(presigned_url, data=f)
+        if upload_response.status_code != 200:
+            raise Exception('Failed to upload the model and tokenizer')
+
+        sio.emit('BMAIN: logs', {'taskId': task_details['id'], 'message': 'Model and tokenizer uploaded to S3'})
+
+        # # Notify server with the link to the uploaded folder
+        # uploaded_url = presigned_url.split('?')[0]
+        # requests.post(SERVER_URL + 'api/notify-upload', json={'taskId': task_details['id'], 'url': uploaded_url})
+
+        sio.emit('BMAIN: logs', {'taskId': task_details['id'], 'message': 'Server notified with the upload link'})
+
+
 
     except Exception as e:
-        sio.emit('error', {'message': str(e)})
+        sio.emit('BMAIN: execute_error', {'message': str(e), 'taskId': task_details['id'],'nodeId': task_details['nodeId']})
+        sio.emit('error', {'message': str(e), 'taskId': task_details['id'],'nodeId': task_details['nodeId']})
         print(f"An error occurred during task execution: {str(e)}")
