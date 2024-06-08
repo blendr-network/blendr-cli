@@ -12,7 +12,6 @@ setup(
         'click==8.1.7',
         'requests==2.31.0',
         'colorama==0.4.6',
-        'GPUtil==1.4.0',
         'psutil==5.9.8',
         'keyring==25.2.0',
         'speedtest-cli==2.1.3',
