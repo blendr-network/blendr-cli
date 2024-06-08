@@ -51,7 +51,7 @@ def initalsetup():
     setup.setup_initial_config()
 
 @cli.command()
-def checkgpu():
+def detech_gpus():
     """check for cpus"""
     detect.detech_gpus()
 

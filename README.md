@@ -57,7 +57,7 @@ Check available GPUs:
 
 
 ```bash
-blendr checkgpu
+blendr detech_gpus
 ```
 
 Listen for tasks:

@@ -10,6 +10,7 @@ def connect_to_server(server_url, token):
 
     """Connect to the server with a given token."""
     try:
+        # print(f"Connecting to the server at {server_url}...")
         sio.connect(server_url, headers={"Authorization": f"Bearer {token}"})
         print("Connected to the server.")
         initialConfig = load_config()
