@@ -11,7 +11,6 @@ def login():
     
       # Request session ID from server
     print("Requesting session ID from the server...")
-    print(SERVER_URL)
     response = requests.post(f'{SERVER_URL}/api/generate/session-id', json={'deviceID': 'macOS'})
     session_id = response.json().get('sessionId')
 

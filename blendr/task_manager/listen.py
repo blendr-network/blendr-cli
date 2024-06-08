@@ -11,7 +11,7 @@ def listen():
     """Listen to Server Tasks"""
     token = keyring.get_password("system", "blendr_jwt_token")
     connect_to_server(SERVER_URL, token)
-    print(sio.get_sid())
+    
     @sio.event
     def connect():
         print("Connected to the server. Listening to Task..")
@@ -50,31 +50,64 @@ def listen():
     @sio.on('BMAIN: LEND_GPU')
     def handle_lending(data):
         public_key = data['publicKey']
-       
+        username = data['username']
+        restricted_dir = f"/home/{username}/restricted"
+
         if not public_key:
             print("No public key found in the data")
             return
-        
-        # Ensure the .ssh directory exists
-        
-        ssh_dir = os.path.expanduser("~/.ssh")
-        if not os.path.exists(ssh_dir):
-            os.makedirs(ssh_dir, mode=0o700)
-        
-        # Path to the authorized_keys file
-        authorized_keys_path = os.path.join(ssh_dir, "authorized_keys")
-        
+
+        # Create a new user with a restricted home directory
+        try:
+            subprocess.run(['sudo', 'useradd', '-m', '-d', restricted_dir, '-s', '/bin/bash', username], check=True)
+            subprocess.run(['sudo', 'mkdir', '-p', restricted_dir], check=True)
+            subprocess.run(['sudo', 'chown', f'{username}:{username}', restricted_dir], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error creating user or directory: {e}")
+            return
+
+        # Ensure the .ssh directory exists for the user
+        ssh_dir = os.path.join(restricted_dir, '.ssh')
+        try:
+            subprocess.run(['sudo', 'mkdir', '-p', ssh_dir], check=True)
+            subprocess.run(['sudo', 'chown', f'{username}:{username}', ssh_dir], check=True)
+            subprocess.run(['sudo', 'chmod', '700', ssh_dir], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error setting up .ssh directory: {e}")
+            return
+
+        # Path to the authorized_keys file for the user
+        authorized_keys_path = os.path.join(ssh_dir, 'authorized_keys')
+
         # Add the public key to the authorized_keys file
         try:
-            with open(authorized_keys_path, 'a') as f:
+            with open('/tmp/temp_key', 'w') as f:
                 f.write(public_key + '\n')
-            
-            # Ensure the file has the correct permissions
-            os.chmod(authorized_keys_path, 0o600)
+            subprocess.run(['sudo', 'mv', '/tmp/temp_key', authorized_keys_path], check=True)
+            subprocess.run(['sudo', 'chown', f'{username}:{username}', authorized_keys_path], check=True)
+            subprocess.run(['sudo', 'chmod', '600', authorized_keys_path], check=True)
             print("Public key added to authorized_keys")
-            
         except Exception as e:
             print(f"An error occurred: {e}")
+
+        # Configure SSH to restrict the user to the restricted directory
+        sshd_config_addition = f"""
+    Match User {username}
+        ChrootDirectory {restricted_dir}
+        AllowTCPForwarding no
+        X11Forwarding no
+        ForceCommand internal-sftp
+        """
+
+        try:
+            with open('/tmp/temp_sshd_config', 'w') as f:
+                f.write(sshd_config_addition)
+            subprocess.run(['sudo', 'bash', '-c', 'cat /tmp/temp_sshd_config >> /etc/ssh/sshd_config'], check=True)
+            subprocess.run(['sudo', 'rm', '/tmp/temp_sshd_config'], check=True)
+            subprocess.run(['sudo', 'systemctl', 'restart', 'ssh'], check=True)
+            print(f"SSH configured for user {username}")
+        except Exception as e:
+            print(f"An error occurred while configuring SSH: {e}")
             
     
 

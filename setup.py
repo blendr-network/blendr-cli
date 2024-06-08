@@ -13,12 +13,14 @@ setup(
         'requests==2.31.0',
         'colorama==0.4.6',
         'psutil==5.9.8',
-        'keyring==25.2.0',
-        'speedtest-cli==2.1.3',
-        'py-cpuinfo==9.0.0',
         'python-socketio[client]==5.11.2',
-        'datasets==2.19.1'
-
+        'keyring==25.2.0',
+        'keyrings.alt==5.0.1',
+        'speedtest-cli==2.1.3',
+        'pandas==2.2.2',
+        'transformers==4.40.2',
+        'datasets==2.19.1',
+        'py3nvml==0.2.7'
     ],
     entry_points={
         'console_scripts': [
@@ -29,7 +31,7 @@ setup(
     author_email='tech@blendr.network',
     description='Blendr CLI tool for GPU Lending',
     license='MIT',
-    keywords='blendr cli',
+    keywords='blendr cli gpu lending',
     url='https://www.blendr.network',
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
