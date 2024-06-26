@@ -53,13 +53,6 @@ Perform initial setup:
 blendr initalsetup
 ```
 
-Check available GPUs:
-
-
-```bash
-blendr detech_gpus
-```
-
 Listen for tasks:
 ```bash
 blendr listentask
