@@ -193,9 +193,9 @@ def load_config():
     
 def get_public_ip():
     try:
-        response = requests.get('https://api.ipify.org?format=json')
-        ip_data = response.json()
-        return ip_data['ip']
+        response = requests.get('https://api.ipify.org')
+        public_ip = response.text
+        return public_ip
     except requests.RequestException as e:
         print(f"{Fore.RED}Failed to get public IP: {str(e)}{Style.RESET_ALL}")
         return "Unavailable"
