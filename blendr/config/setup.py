@@ -6,6 +6,7 @@ import platform
 import subprocess
 import py3nvml.py3nvml as nvml
 from colorama import Fore, Style, init
+import requests
 
 # Initialize colorama
 init(autoreset=True)
@@ -17,8 +18,9 @@ def setup_initial_config():
     gpu_info = select_gpu()
     cpu_info = get_cpu_info()
     network_info = check_network_speed()
+    public_ip = get_public_ip()
 
-    save_preferences(node_name, storage_info, gpu_info, cpu_info, network_info)
+    save_preferences(node_name, storage_info, gpu_info, cpu_info, network_info,public_ip)
 
 def select_nodename():
     while True:
@@ -160,14 +162,15 @@ def get_storage_info():
     print(f"{Fore.BLUE}Storage Info: {storage_info}{Style.RESET_ALL}")
     return storage_info
 
-def save_preferences(node_name, storage_info, gpu_info, cpu_info, network_info):
+def save_preferences(node_name, storage_info, gpu_info, cpu_info, network_info,public_ip):
     try:
         config = {
             'node_name': node_name,
             'gpu_info': gpu_info if gpu_info else None,
             'storage_info': storage_info,
             'cpu_info': cpu_info,
-            'network_info': network_info
+            'network_info': network_info,
+            'public_ip': public_ip
         }
         with open('node-config.json', 'w') as f:
             json.dump(config, f, indent=4)
@@ -187,3 +190,12 @@ def load_config():
     except json.JSONDecodeError:
         print(f"{Fore.RED}Error decoding the configuration file.{Style.RESET_ALL}")
         return {}
+    
+def get_public_ip():
+    try:
+        response = requests.get('https://api.ipify.org?format=json')
+        ip_data = response.json()
+        return ip_data['ip']
+    except requests.RequestException as e:
+        print(f"{Fore.RED}Failed to get public IP: {str(e)}{Style.RESET_ALL}")
+        return "Unavailable"
