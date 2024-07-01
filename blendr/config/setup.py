@@ -42,7 +42,7 @@ def select_gpu():
         gpus = []
         for i in range(device_count):
             handle = nvml.nvmlDeviceGetHandleByIndex(i)
-            name = nvml.nvmlDeviceGetName(handle).decode('utf-8')
+            name = nvml.nvmlDeviceGetName(handle)
             memory_info = nvml.nvmlDeviceGetMemoryInfo(handle)
             gpus.append({
                 "id": i,
