@@ -15,13 +15,14 @@ def setup_initial_config():
     print(f"{Fore.CYAN}Welcome to the Initial Setup for Blendr GPU Lending{Style.RESET_ALL}")
     node_name = select_nodename()
     price = get_price()
+    port = get_port()
     storage_info = get_storage_info()
     gpu_info = select_gpu()
     cpu_info = get_cpu_info()
     network_info = check_network_speed()
     public_ip = get_public_ip()
 
-    save_preferences(node_name, storage_info, gpu_info, cpu_info, network_info,public_ip,price)
+    save_preferences(node_name, storage_info, gpu_info, cpu_info, network_info,public_ip,price,port)
 
 def select_nodename():
     while True:
@@ -170,7 +171,7 @@ def get_price():
         except ValueError:
             print(f"{Fore.RED}Invalid input. Please enter a numeric value.{Style.RESET_ALL}")
 
-def save_preferences(node_name, storage_info, gpu_info, cpu_info, network_info,public_ip,price):
+def save_preferences(node_name, storage_info, gpu_info, cpu_info, network_info,public_ip,price,port):
     try:
         config = {
             'node_name': node_name,
@@ -179,7 +180,8 @@ def save_preferences(node_name, storage_info, gpu_info, cpu_info, network_info,p
             'cpu_info': cpu_info,
             'network_info': network_info,
             'public_ip': public_ip,
-            'price': price
+            'price': price,
+            'port': port
         }
         with open('node-config.json', 'w') as f:
             json.dump(config, f, indent=4)
@@ -208,3 +210,11 @@ def get_public_ip():
     except requests.RequestException as e:
         print(f"{Fore.RED}Failed to get public IP: {str(e)}{Style.RESET_ALL}")
         return "Unavailable"
+
+def get_port():
+    try:
+        port = float(input(f"{Fore.GREEN}Enter the ssh port for the node: {Style.RESET_ALL}"))
+        return port
+    except requests.RequestException as e:
+        print(f"{Fore.RED}Failed to get Port: {str(e)}{Style.RESET_ALL}")
+        return "22"
