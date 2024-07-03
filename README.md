@@ -29,7 +29,7 @@ A step-by-step series of examples that tell you how to get a development environ
 Install the package using pip:
 
 ```bash
-pip install blendr
+pip install blendr-cli
 ```
 
 Verify the installation:
